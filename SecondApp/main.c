@@ -3,22 +3,21 @@
 #include <stdlib.h>
 #include <ctype.h>
 
+typedef enum error_flag {
+	toupper_error,
+	tolower_error
+} flag;
 
-int get_length(char* string) {
-	int k = 0;
-	while (string[k] != '\0') {
-		++k;
-	}
-	return k;
-}
-
-char translate_to_uppercase(char* string) { //char чтобы возвращать код ошибки и не занимать много места
+char translate_to_uppercase(char* string, flag* error_code) { //char чтобы возвращать код ошибки и не занимать много места
 	int i = 0;
 	while (string[i] != '\0') {
 		if (string[i] == ' ') {
 			string[i] = '_';
 		} else {
 			string[i] = toupper(string[i]); // потом проверю 
+			if (string[i] < 65 || string[i] > 90) {
+				*error_code = toupper_error;
+			}
 		}
 		
 		++i;
@@ -26,14 +25,17 @@ char translate_to_uppercase(char* string) { //char чтобы возвращать код ошибки и
 	return 0;
 }
 
-char translate_to_lowercase(char* string) { //char чтобы возвращать код ошибки и не занимать много места
+char translate_to_lowercase(char* string, flag* error_code) { //char чтобы возвращать код ошибки и не занимать много места
 	int i = 0;
 	while (string[i] != '\0') {
 		if (string[i] == '_') {
 			string[i] = ' ';
 		}
 		else {
-			string[i] = tolower(string[i]); // потом проверю 
+			string[i] = tolower(string[i]);
+			if (string[i] < 97 || string[i] > 122) {
+				*error_code = tolower_error;
+			}
 		}
 
 		++i;
@@ -74,7 +76,12 @@ char decode(char* string, int current_shift) {
 	translate_to_lowercase(string); // потом на ошибку проверить
 }
 
-int main() {
+int main(int argc, char** argv) {
+	int param = atoi(argv[1]);
+	if (argc != 2) {
+		printf("Error first");
+		return 1;
+	}
 	printf("Enter text: ");
 	char string[50] = "";
 	int a = -1;
@@ -86,16 +93,21 @@ int main() {
 		} else string[i] = a;
 		++i;
 	}
+	if (a == -1){
+		printf("Error during reading");
+	}
 	printf("Enter shift: ");
 	int shift;
-	scanf("%d", &shift);
-	printf("Enter mode: ");
-	int temp = -1; // не знаю че в скобах мейна должно быть это типо аргумент оттуда и пока что он равен 0, 0 - щифрование
-	scanf("%d", &temp);
-	if (temp == 0){
+	int code = 0;
+	code = scanf("%d", &shift);
+	if (code == EOF || code <= 0 ) {
+		perror("Scanf error: ");
+		return 1;
+	}
+	if (param == 0){
 		encode(string, shift);
 	}
-	if (temp == 1) {
+	if (param == 1) {
 		decode(string, shift);
 	}
 	printf("%s", string);
